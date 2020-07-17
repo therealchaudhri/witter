@@ -1,8 +1,8 @@
 use dotenv;
 
-use http_types::headers::HeaderValue;
 use sqlx::PgPool;
 use sqlx::Pool;
+use tide::http::headers::HeaderValue;
 use tide::security::Origin;
 use tide::Server;
 
@@ -42,14 +42,27 @@ async fn server(db_pool: PgPool) -> Server<State> {
             )
             .allow_origin(Origin::Any),
     );
+
     server.middleware(middlewares::ErrorReponseToJson);
 
     server.at("/users").post(endpoints::users::create);
     server
         .at("/users/:username/session")
         .post(endpoints::users::login);
+    server
+        .at("/users/:username/follow")
+        .post(endpoints::users::follow);
+    server
+        .at("/users/:username/following")
+        .get(endpoints::users::following);
+    server
+        .at("/users/:username/followers")
+        .get(endpoints::users::followers);
 
     server.at("/me").get(endpoints::me::get);
+    server.at("/me/timeline").get(endpoints::me::timeline);
+
+    server.at("/tweets").post(endpoints::tweets::create);
 
     server
 }
